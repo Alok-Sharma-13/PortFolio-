@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';">
+  <title>Alok's Terminal Portfolio</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background-color: black;
+      color: #00ff00;
+      font-family: 'Courier New', Courier, monospace;
+      overflow: hidden;
+    }
+
+    #terminal {
+      background-color: #111;
+      border: 2px solid #00ff00;
+      box-shadow: 0 0 15px #00bfff;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+    }
+
+    #output {
+      flex: 1;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      line-height: 1.4;
+      margin-bottom: 10px;
+    }
+
+    #output > div {
+      margin-bottom: 12px;
+    }
+
+    #prompt {
+      display: flex;
+      align-items: center;
+      border-top: 1px solid #0bff00;
+      padding-top: 10px;
+      font-weight: bold;
+      font-size: 1em;
+      flex-shrink: 0;
+    }
+
+    #prompt span {
+      margin-right: 8px;
+      user-select: none;
+      color: #00bfff;
+    }
+
+    .prompt-text {
+      color: #00bfff;
+      font-weight: bold;
+    }
+
+    input {
+      background: black;
+      border: none;
+      color: #ff4444;
+      font-weight: bold;
+      font-family: inherit;
+      font-size: 1em;
+      outline: none;
+      flex: 1;
+      caret-color: #00ff00;
+      animation: blink 1.2s step-end infinite;
+      min-width: 50px;
+    }
+
+    input:focus {
+      outline: 2px solid #00bfff;
+      outline-offset: 2px;
+    }
+
+    @keyframes blink {
+      0%, 50%, 100% { border-right: 2px solid #00ff00; }
+      25%, 75% { border-right: none; }
+    }
+
+    .error {
+      color: #ff4444;
+      font-weight: bold;
+    }
+
+    .typing {
+      overflow: hidden;
+      white-space: nowrap;
+      animation: type 2.5s steps(40, end);
+    }
+
+    @keyframes type {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    #output::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #output::-webkit-scrollbar-thumb {
+      background: #00ff00;
+      border-radius: 3px;
+    }
+
+    @media (max-width: 600px) {
+      #terminal {
+        padding: 10px;
+        font-size: 0.95em;
+      }
+      #prompt {
+        font-size: 0.95em;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="terminal">
+  <div id="output" aria-live="polite" role="log"></div>
+  <div id="prompt">
+    <span>alok@D5FAULT:~$</span>
+    <input id="commandInput" aria-label="Terminal command input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" autofocus />
+  </div>
+</div>
+
+<script>
+  const files = {
+    "about.txt": `D5FAULT Terminal Portfolio
+Created by Alok Sharma
+
+I’m a cybersecurity enthusiast with a strong interest in ethical hacking, secure software development, and automation.
+
+Through internships and freelance projects, I’ve gained hands-on experience in areas like web application testing, chatbot automation, and penetration testing. I enjoy solving real-world security challenges and continuously improving my skills through research, hackathons, and collaborative work.
+
+Currently, I’m pursuing a Bachelor’s degree in Information Technology and focusing on building tools that contribute to secure and efficient systems.
+
+Use commands like 'cat filename.txt' to explore the content.
+Type 'help' to see available commands.
+`,
+
+    "experience.txt": `
+1. Freelance Pentester – Classbot.in
+- Duration: May 1, 2025 – May 31, 2025
+- Reached out by the company to test their web application
+- Conducted vulnerability assessments and reported findings
+
+2. Talent Corner (Chatbot Intern)
+- Duration: Dec 14, 2024 – Mar 14, 2025
+- Developed email automation with Python
+- Implemented encryption & debugging for secure communication
+- Tech Stack: Python, PostgreSQL, Cryptography, FastAPI
+
+3. Media Barn (Pitch Deck Designer)
+- Duration: Dec 2023 – Jan 2024
+- Strengthened client relationships
+- Analyzed data for actionable insights
+- Encouraged team collaboration
+`,
+
+    "certificate.txt": `Certificate link: <a href="https://drive.google.com/your_link_here" target="_blank" style="color:#00bfff;">Google Drive</a>`,
+
+    "education.txt": `Bachelor of Science in Information Technology
+- Thakur Ramnarayan College of Arts and Commerce (Jun 2023 – May 2026)
+
+Higher Secondary Certificate
+- Don Bosco High School & Jr. College (Jun 2022 – May 2023)
+
+Secondary School Certificate
+- Don Bosco High School & Jr. College (Jun 2020 – May 2021)
+`,
+
+    "skills.txt": `Languages & Frameworks:
+- Python, Rust, Bash, Flask, Pandas, HTML, CSS
+
+Databases & Version Control:
+- SQLite, PostgreSQL, Git, GitHub
+
+Tools & Platforms:
+- VS Code, Jupyter, Linux, Docker
+`,
+
+    "projects.txt": `1. M.E.D.U.S.A (Multi-Function Data Utility and Security App)
+- Password Generator
+- SQL Injection Detection
+- Keylogger for security assessments
+- Encryption/Decryption of files & messages
+
+2. MoneyMint (Hackathon Project)
+- Carbon footprint calculator using OCR
+- Developed for GenAI Hackathon
+- HTML, CSS, JS, Python, Flask, SQLite, EasyOCR
+`,
+
+    "achievements.txt": `
+- Performed security testing on 2 websites:
+  • College portal of Thakur Ramnarayan College of Arts and Commerce (identified critical vulnerabilities)
+  • Company website: classbot.in
+- Participated in the largest GenAI Hackathon
+- Research Paper selected for TRCAC National Conference (2024)
+- Project selected for Avishkar Intercollege Event (2024)
+- 3rd place in Web Development Competition
+- Completed Pentesting Challenge on HackTheBox
+- Certifications:
+  - Penetration Testing & Ethical Hacking (Cybrary)
+  - Python (Udemy)
+`,
+
+    "contact.txt": `Alok Sharma
+Email: aloksharma132005@gmail.com
+Phone: +91-7798547243
+LinkedIn: linkedin.com/in/aloksharma13
+GitHub: github.com/Alok-Sharma-13
+X: x.com/TheAlokSharma_1
+`
+  };
+
+  const helpText = `Available commands:
+cat about.txt
+cat experience.txt
+cat certificate.txt
+cat skills.txt
+cat projects.txt
+cat achievements.txt
+cat education.txt
+cat contact.txt
+ls
+clear
+help`;
+
+  const welcomeText = `Welcome to the D5FAULT Terminal
+Type a command to learn more about Alok Sharma.
+
+Type 'help' to list all available commands.
+`;
+
+  const input = document.getElementById("commandInput");
+  const output = document.getElementById("output");
+
+  function appendOutput(text, isError = false, isTyping = false) {
+    const div = document.createElement('div');
+    if (isTyping) {
+      div.className = 'typing';
+    }
+    div.innerHTML = isError ? `<span class="error">${text}</span>` : text;
+    output.appendChild(div);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  input.disabled = true;
+  appendOutput(welcomeText, false, true);
+  setTimeout(() => {
+    input.disabled = false;
+    input.focus();
+  }, 2500);
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      const rawCommand = input.value.trim();
+      const command = rawCommand.toLowerCase();
+
+      appendOutput(`<span class="prompt-text">alok@D5FAULT:~$</span> ${rawCommand}`);
+
+      if (command === "clear") {
+        output.innerHTML = "";
+        appendOutput(welcomeText, false, false);
+      } else if (command === "help") {
+        appendOutput(helpText);
+      } else if (command === "ls") {
+        appendOutput(Object.keys(files).join('\n'));
+      } else if (command.startsWith("cat ")) {
+        const filename = command.split("cat ")[1].toLowerCase();
+        if (files[filename]) {
+          appendOutput(files[filename]);
+        } else {
+          const suggestions = Object.keys(files)
+            .filter(f => f.includes(filename))
+            .join(', ');
+          const suggestionText = suggestions
+            ? `<br>Did you mean: <span class="error">${suggestions}</span>?`
+            : '';
+          appendOutput(`Error: '${filename}' not found.${suggestionText}`, true);
+        }
+      } else if (command !== "") {
+        appendOutput(`Error: Unknown command '${rawCommand}'`, true);
+      }
+
+      input.value = "";
+    }
+  });
+</script>
+
+</body>
+</html>
